@@ -1,8 +1,8 @@
 package main
 
-import "github.com/vaskipa/webcalculate/iternal/application"
+import "webcalculate/internal"
 
 func main() {
-	app := application.New()
-	app.Run()
+	app := internal.New()
+	app.RunServer()
 }

@@ -1,23 +1,42 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/vaskipa/webcalculate/iternal/calculate"
 	"net/http"
-	"strconv"
+	"webcalculate/calculate"
 )
+
+type Application struct {
+}
+
+func New() *Application {
+	return &Application{}
+}
+
+type Request struct {
+	Expression string `json:"expression"`
+}
 
 func CalculateHandler(w http.ResponseWriter, r *http.Request) {
 
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		return http.HandleFunc()
+	request := new(Request)
+	defer r.Body.Close()
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, "error: Expression is not valid", http.StatusUnprocessableEntity)
+		return
 	}
 
-	fmt.Fprintf(w, "rpc_duration_milliseconds_count "+strconv.Itoa(requestCount))
+	result, err := calculate.Calc(request.Expression)
+	if err != nil {
+		http.Error(w, "error: Expression is not valid", http.StatusUnprocessableEntity)
+	} else {
+		fmt.Fprintf(w, "result: %f", result)
+	}
 }
-func main() {
-	http.HandleFunc("/api/v1/calculate", CalculateHandler)
 
-	http.ListenAndServe(":8080", nil)
+func (a *Application) RunServer() error {
+	http.HandleFunc("/api/v1/calculate", CalculateHandler)
+	return http.ListenAndServe("0.0.0.0:8080", nil)
 }
