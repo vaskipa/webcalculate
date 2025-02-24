@@ -1,4 +1,4 @@
-package internal
+package repositories
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-func createTable() error {
+func InitTables() error {
 	db, err := sql.Open("sqlite3", "./server.sqlite")
 	if err != nil {
 		fmt.Println("Ошибка при подключении к базе данных:", err)
@@ -20,7 +20,7 @@ func createTable() error {
 			Id INTEGER PRIMARY KEY AUTOINCREMENT,
 			Task TEXT,
 			Status TEXT DEFAULT 'not ready',
-			Result TEXT DEFAULT ''
+			Result float DEFAULT ''
         );
     `
 	_, err = db.Exec(query)
@@ -29,7 +29,7 @@ func createTable() error {
 
 var mutex sync.Mutex
 
-func addRecord(task string) (int64, error) {
+func AddRecord(task string) (int64, error) {
 	mutex.Lock()
 	db, err := sql.Open("sqlite3", "./server.sqlite")
 	defer mutex.Unlock()
@@ -58,7 +58,7 @@ type Record struct {
 	Status string `json:"status"`
 }
 
-func getRecords() ([]Record, error) {
+func GetRecords() ([]Record, error) {
 	mutex.Lock()
 	db, err := sql.Open("sqlite3", "./server.sqlite")
 	rows, err := db.Query("SELECT Id, Task, Result, Status FROM tasks")
@@ -81,17 +81,28 @@ func getRecords() ([]Record, error) {
 	return records, nil
 }
 
-func getRecord(id int64) (Record, error) {
+func GetRecord(id int64) (Record, error) {
 	mutex.Lock()
 	db, err := sql.Open("sqlite3", "./server.sqlite")
-	row, err := db.Query("SELECT Id, Task, Result, Status FROM tasks WHERE Id = ?", id)
-	mutex.Unlock()
-	if err != nil {
-		return Record{}, err
-	}
-
 	task := new(Record)
-	_ = row.Scan(&task.Id, &task.Task, &task.Status, &task.Result)
+	err = db.QueryRow("SELECT Id, Task, Result, Status FROM tasks WHERE Id = ?", id).Scan(&task.Id, &task.Task, &task.Status, &task.Result)
+
+	mutex.Unlock()
+
 	return *task, err
 
+}
+
+func UpdateTask(id int64, result float64) {
+
+	mutex.Lock()
+	db, _ := sql.Open("sqlite3", "./server.sqlite")
+	query := `
+        UPDATE tasks
+        SET Status = "ready", result = ?
+        WHERE id = ?
+	`
+
+	_, _ = db.Exec(query, result)
+	mutex.Unlock()
 }

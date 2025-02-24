@@ -1,42 +1,42 @@
-package internal
+package repositories
 
 import (
 	"testing"
 )
 
-func TestCreateTable(t *testing.T) {
-	err := createTable()
+func TestInitTables(t *testing.T) {
+	err := InitTables()
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestCreateRecord(t *testing.T) {
-	err := createTable()
+	err := InitTables()
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = addRecord("2")
+	_, err = AddRecord("2")
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestGetRecords(t *testing.T) {
-	err := createTable()
+	err := InitTables()
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = addRecord("2")
+	_, err = AddRecord("2")
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = addRecord("2")
+	_, err = AddRecord("2")
 	if err != nil {
 		t.Error(err)
 	}
-	data, err := getRecords()
+	data, err := GetRecords()
 	if err != nil {
 		t.Error(err)
 	}
@@ -46,16 +46,16 @@ func TestGetRecords(t *testing.T) {
 }
 
 func TestGetRecord(t *testing.T) {
-	err := createTable()
+	err := InitTables()
 	if err != nil {
 		t.Error(err)
 	}
-	id, err := addRecord("2")
+	id, err := AddRecord("2")
 	if err != nil {
 		t.Error(err)
 	}
 
-	data, err := getRecord(id)
+	data, err := GetRecord(id)
 	if err != nil {
 		t.Error(err)
 	}
